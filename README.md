@@ -10,3 +10,8 @@
 6. Controllers 
 7. Templates
 8. Стили и дизайн
+
+# tools
+## db
+1. docker exec -it abelo-host-php-1 php db/migrate.php 
+2. docker exec -it abelo-host-php-1 php db/seed.php
