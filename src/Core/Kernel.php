@@ -9,6 +9,7 @@ class Kernel
     private Router $router;
 
     public function __construct() {
+        $this->registerErrorHandlers();
         $this->loadEnv();
         $this->container = new Container();
         $this->router    = new Router($this->container);
@@ -16,6 +17,9 @@ class Kernel
         $this->registerRoutes();
     }
 
+    /**
+     * @return static
+     */
     public static function getInstance(): static
     {
         if (self::$instance === null) {
@@ -25,6 +29,9 @@ class Kernel
         return self::$instance;
     }
 
+    /**
+     * @return void
+     */
     private function loadEnv(): void
     {
         $env = parse_ini_file(__DIR__ . '/../../.env');
@@ -33,11 +40,17 @@ class Kernel
         }
     }
 
+    /**
+     * @return Container
+     */
     public static function container(): Container
     {
         return self::getInstance()->container;
     }
 
+    /**
+     * @return void
+     */
     private function registerBindings(): void
     {
         $this->container->bind(Db::class, function () {
@@ -53,6 +66,9 @@ class Kernel
         $this->container->bind(View::class, fn() => new View(new SmartyRenderer()));
     }
 
+    /**
+     * @return void
+     */
     private function registerRoutes(): void
     {
         $router = $this->router;
@@ -67,8 +83,49 @@ class Kernel
         return $this->router;
     }
 
+    /**
+     * @return void
+     */
     public function run(): void
     {
         $this->router->dispatch();
+    }
+
+    /**
+     * @return void
+     */
+    private function registerErrorHandlers(): void
+    {
+        set_exception_handler(function (\Throwable $e) {
+            $this->renderError(500, $e->getMessage());
+        });
+
+        register_shutdown_function(function () {
+            $error = error_get_last();
+            if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+                $this->renderError(500, $error['message']);
+            }
+        });
+    }
+
+    /**
+     * @param int $code
+     * @param string $message
+     * @return void
+     */
+    private function renderError(int $code, string $message = ''): void
+    {
+        if (headers_sent()) {
+            return;
+        }
+
+        http_response_code($code);
+
+        try {
+            $view = $this->container->make(View::class);
+            echo $view->render('errors/' . $code, ['message' => $message, 'code' => $code]);
+        } catch (\Throwable) {
+            echo '<h1>' . $code . ' Internal Server Error</h1>';
+        }
     }
 }

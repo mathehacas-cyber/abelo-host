@@ -10,11 +10,18 @@ class Db
     private static ?PDO $instance = null;
     private static array $config = [];
 
+    /**
+     * @param array $config
+     * @return void
+     */
     public static function configure(array $config): void
     {
         self::$config = $config;
     }
 
+    /**
+     * @return PDO
+     */
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {

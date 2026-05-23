@@ -6,6 +6,11 @@ use App\Models\Category;
 
 class IndexController extends BaseController
 {
+    /**
+     * @param array $params
+     * @return void
+     * @throws \Exception
+     */
     public function index(array $params = []):void
     {
         $this->view('index', [

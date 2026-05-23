@@ -6,6 +6,11 @@ use App\Models\Article;
 
 class ArticleController extends BaseController
 {
+    /**
+     * @param array $params
+     * @return void
+     * @throws \Exception
+     */
     public function index(array $params = []): void
     {
         $slug    = $params['slug'] ?? '';

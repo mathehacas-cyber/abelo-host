@@ -48,7 +48,7 @@ class Router
             }
 
             $this->terminate(404);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->terminate(500, $e->getMessage());
         }
     }

@@ -8,6 +8,10 @@ use PDO;
 
 abstract class BaseModel
 {
+    /**
+     * @return PDO
+     * @throws \Exception
+     */
     protected static function db(): PDO
     {
         return Kernel::container()->make(Db::class);
