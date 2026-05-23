@@ -13,20 +13,45 @@ class Router
         private Container $container
     ) {}
 
+    /**
+     * @param string $path
+     * @param array $handler
+     * @return void
+     */
+    public function get(string $path, array $handler): void
+    {
+        $this->addRoute('GET', $path, $handler);
+    }
 
     /**
      * @param string $path
      * @param array $handler
-     * @param string $method
      * @return void
      */
-    public function get(string $path, array $handler, string $method = 'GET'): void
+    public function post(string $path, array $handler): void
     {
-        $this->routes[] = [
-            'method'  => $method,
-            'path'    => $path,
-            'handler' => $handler,
-        ];
+        $this->addRoute('POST', $path, $handler);
+    }
+
+    /**
+     * @param string $path
+     * @param array $handler
+     * @return void
+     */
+    public function delete(string $path, array $handler): void
+    {
+        $this->addRoute('DELETE', $path, $handler);
+    }
+
+    /**
+     * @param string $method
+     * @param string $path
+     * @param array $handler
+     * @return void
+     */
+    private function addRoute(string $method, string $path, array $handler): void
+    {
+        $this->routes[] = ['method' => $method, 'path' => $path, 'handler' => $handler];
     }
 
     /**
@@ -34,7 +59,7 @@ class Router
      */
     public function dispatch(): void
     {
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 
         try {
             foreach ($this->routes as $route) {
@@ -49,6 +74,11 @@ class Router
 
             $this->terminate(404);
         } catch (\Throwable $e) {
+            \App\Core\Kernel::logger()->error($e->getMessage(), [
+                'uri' => $uri,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             $this->terminate(500, $e->getMessage());
         }
     }
@@ -72,18 +102,20 @@ class Router
      * @param int $statusCode
      * @param string $message
      * @return void
+     * @throws \Exception
      */
     protected function terminate(int $statusCode = 500, string $message = ''): void
     {
         http_response_code($statusCode);
 
         $view = $this->container->make(View::class);
-        echo $view->render(
+        $view->render(
             'errors/' . $statusCode,
             [
                 'message' => $message,
                 'code' => $statusCode,
             ]
         );
+        exit;
     }
 }

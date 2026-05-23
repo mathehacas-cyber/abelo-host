@@ -18,13 +18,11 @@ Db::configure([
 
 $pdo = Db::getInstance();
 
-// ── Очистка предыдущих данных ─────────────────────────────────────────────
 $pdo->exec('DELETE FROM article_category');
 $pdo->exec('DELETE FROM articles');
 $pdo->exec('DELETE FROM categories');
 echo "Previous data removed.\n";
 
-// ── Категории ─────────────────────────────────────────────────────────────
 $categories = [
     ['title' => 'Эмоции',        'description' => 'Как понять и управлять своими эмоциями',         'slug' => 'emocii'],
     ['title' => 'Отношения',     'description' => 'Дружба, любовь и конфликты в школьном возрасте', 'slug' => 'otnosheniya'],
@@ -46,7 +44,6 @@ foreach ($categories as $category) {
 
 echo "Categories seeded.\n";
 
-// ── Статьи ────────────────────────────────────────────────────────────────
 $articles = [
     [
         'title'       => 'Почему я так быстро злюсь',

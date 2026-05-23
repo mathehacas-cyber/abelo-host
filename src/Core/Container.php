@@ -1,10 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Core;
 
 class Container
 {
     private array $bind = [];
+    private array $instances = [];
 
     /**
      * @param string $abstract
@@ -23,9 +24,12 @@ class Container
      */
     public function make(string $abstract): mixed
     {
-        if(!isset($this->bind[$abstract])){
-            throw new \Exception("{$abstract} is not bound");
+        if(!isset($this->instances[$abstract])) {
+            if (!isset($this->bind[$abstract])) {
+                throw new \Exception("{$abstract} is not bound");
+            }
+            $this->instances[$abstract] = ($this->bind[$abstract])($this);
         }
-        return ($this->bind[$abstract])($this);
+        return $this->instances[$abstract];
     }
 }

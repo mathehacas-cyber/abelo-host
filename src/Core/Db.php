@@ -29,10 +29,15 @@ class Db
                 self::$instance = new PDO(
                     'mysql:host=' . self::$config['host'] . ';dbname=' . self::$config['name'] . ';charset=utf8mb4',
                     self::$config['user'],
-                    self::$config['password']
+                    self::$config['password'],
+                    [
+                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                        \PDO::ATTR_EMULATE_PREPARES => false,
+                    ]
                 );
             } catch (PDOException $e) {
-                die('Errors databases: ' . $e->getMessage());
+                throw new \RuntimeException('Database connection failed: ' . $e->getMessage(), 0, $e);
             }
         }
 

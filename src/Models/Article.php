@@ -11,20 +11,22 @@ class Article extends BaseModel
      */
     public static function getBySlug(string $slug): ?array
     {
-        $stmt = self::db()->prepare('
-            SELECT * FROM articles WHERE slug = :slug
-        ');
-        $stmt->execute(['slug' => $slug]);
-        $article = $stmt->fetch();
+        return self::cache()->remember("article.slug.{$slug}", 300, function () use ($slug) {
+            $stmt = self::db()->prepare('
+                SELECT * FROM articles WHERE slug = :slug
+            ');
+            $stmt->execute(['slug' => $slug]);
+            $article = $stmt->fetch();
 
-        if (!$article) {
-            return null;
-        }
+            if (!$article) {
+                return null;
+            }
 
-        $article['categories']    = self::getCategories((int)$article['id']);
-        $article['category_ids']  = array_column($article['categories'], 'id');
+            $article['categories'] = self::getCategories((int)$article['id']);
+            $article['category_ids'] = array_column($article['categories'], 'id');
 
-        return $article;
+            return $article;
+        });
     }
 
     /**
@@ -40,25 +42,29 @@ class Article extends BaseModel
         int $page,
         int $perPage
     ): array {
-        $order  = $sort === 'views' ? 'a.views DESC' : 'a.public_at DESC';
-        $offset = ($page - 1) * $perPage;
+        $cacheKey = "articles.category.{$slug}.{$sort}.{$page}.{$perPage}";
 
-        $stmt = self::db()->prepare("
-            SELECT a.*
-            FROM articles a
-            JOIN article_category ac ON ac.article_id = a.id
-            JOIN categories c ON c.id = ac.category_id
-            WHERE c.slug = :slug
-            ORDER BY {$order}
-            LIMIT :limit OFFSET :offset
-        ");
+        return self::cache()->remember($cacheKey, 300, function () use ($slug, $sort, $page, $perPage) {
+            $order  = $sort === 'views' ? 'a.views DESC' : 'a.public_at DESC';
+            $offset = ($page - 1) * $perPage;
 
-        $stmt->bindValue(':slug',   $slug,    \PDO::PARAM_STR);
-        $stmt->bindValue(':limit',  $perPage, \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset,  \PDO::PARAM_INT);
-        $stmt->execute();
+            $stmt = self::db()->prepare("
+                SELECT a.*
+                FROM articles a
+                JOIN article_category ac ON ac.article_id = a.id
+                JOIN categories c ON c.id = ac.category_id
+                WHERE c.slug = :slug
+                ORDER BY {$order}
+                LIMIT :limit OFFSET :offset
+            ");
 
-        return $stmt->fetchAll();
+            $stmt->bindValue(':slug', $slug,\PDO::PARAM_STR);
+            $stmt->bindValue(':limit', $perPage, \PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->fetchAll();
+        });
     }
 
     /**
@@ -67,15 +73,17 @@ class Article extends BaseModel
      */
     public static function countByCategorySlug(string $slug): int
     {
-        $stmt = self::db()->prepare('
-            SELECT COUNT(*) FROM articles a
-            JOIN article_category ac ON ac.article_id = a.id
-            JOIN categories c ON c.id = ac.category_id
-            WHERE c.slug = :slug
-        ');
-        $stmt->execute(['slug' => $slug]);
+        return (int) self::cache()->remember("articles.count.{$slug}", 300, function () use ($slug) {
+            $stmt = self::db()->prepare('
+                SELECT COUNT(*) FROM articles a
+                JOIN article_category ac ON ac.article_id = a.id
+                JOIN categories c ON c.id = ac.category_id
+                WHERE c.slug = :slug
+            ');
+            $stmt->execute(['slug' => $slug]);
 
-        return (int)$stmt->fetchColumn();
+            return (int)$stmt->fetchColumn();
+        });
     }
 
     /**
@@ -101,21 +109,25 @@ class Article extends BaseModel
             return [];
         }
 
-        $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+        $key = 'articles.related.' . $articleId . '.' . implode(',', $categoryIds);
 
-        $stmt = self::db()->prepare("
-            SELECT DISTINCT a.*
-            FROM articles a
-            JOIN article_category ac ON ac.article_id = a.id
-            WHERE ac.category_id IN ({$placeholders})
-              AND a.id != ?
-            ORDER BY a.public_at DESC
-            LIMIT 3
-        ");
+        return self::cache()->remember($key, 600, function () use ($articleId, $categoryIds) {
+            $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
 
-        $stmt->execute([...$categoryIds, $articleId]);
+            $stmt = self::db()->prepare("
+                SELECT DISTINCT a.*
+                FROM articles a
+                JOIN article_category ac ON ac.article_id = a.id
+                WHERE ac.category_id IN ({$placeholders})
+                  AND a.id != ?
+                ORDER BY a.public_at DESC
+                LIMIT 3
+            ");
 
-        return $stmt->fetchAll();
+            $stmt->execute([...$categoryIds, $articleId]);
+
+            return $stmt->fetchAll();
+        });
     }
 
     /**

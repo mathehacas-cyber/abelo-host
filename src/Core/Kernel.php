@@ -8,7 +8,7 @@ class Kernel
     private Container $container;
     private Router $router;
 
-    public function __construct() {
+    private function __construct() {
         $this->registerErrorHandlers();
         $this->loadEnv();
         $this->container = new Container();
@@ -35,6 +35,9 @@ class Kernel
     private function loadEnv(): void
     {
         $env = parse_ini_file(__DIR__ . '/../../.env');
+        if ($env === false) {
+            throw new \RuntimeException('.env file not found or invalid');
+        }
         foreach ($env as $key => $value) {
             $_ENV[$key] = $value;
         }
@@ -53,11 +56,16 @@ class Kernel
      */
     private function registerBindings(): void
     {
+        $storageDir = __DIR__ . '/../../storage';
+
+        $this->container->bind(Cache::class, fn() => new Cache($storageDir . '/cache'));
+        $this->container->bind(Logger::class, fn() => new Logger($storageDir . '/logs'));
+
         $this->container->bind(Db::class, function () {
             Db::configure([
-                'host'     => $_ENV['DB_HOST']     ?? 'mysql',
-                'name'     => $_ENV['DB_NAME']     ?? 'blog',
-                'user'     => $_ENV['DB_USER']     ?? 'root',
+                'host' => $_ENV['DB_HOST'] ?? 'mysql',
+                'name' => $_ENV['DB_NAME'] ?? 'blog',
+                'user' => $_ENV['DB_USER'] ?? 'root',
                 'password' => $_ENV['DB_PASSWORD'] ?? '',
             ]);
             return Db::getInstance();
@@ -121,9 +129,21 @@ class Kernel
 
         http_response_code($code);
 
+        if ($this->container === null) {
+            echo "<h1>{$code} Error</h1>";
+            return;
+        }
+
+        try {
+            $this->container->make(Logger::class)->error("HTTP {$code}", [
+                'message' => $message,
+                'uri'     => $_SERVER['REQUEST_URI'] ?? '',
+            ]);
+        } catch (\Throwable) {}
+
         try {
             $view = $this->container->make(View::class);
-            echo $view->render('errors/' . $code, ['message' => $message, 'code' => $code]);
+            $view->render('errors/' . $code, ['message' => $message, 'code' => $code]);
         } catch (\Throwable) {
             echo '<h1>' . $code . ' Internal Server Error</h1>';
         }

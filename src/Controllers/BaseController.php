@@ -35,12 +35,14 @@ abstract class BaseController
         http_response_code($statusCode);
 
         $view = $this->container->make(View::class);
-        echo $view->render(
+        $view->render(
             'errors/' . $statusCode,
             [
                 'message' => $message,
                 'code' => $statusCode,
             ]
         );
+
+        exit;
     }
 }
