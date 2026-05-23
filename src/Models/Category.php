@@ -4,6 +4,19 @@ namespace App\Models;
 
 class Category extends BaseModel
 {
+    /**
+     * @param string $slug
+     * @return array|null
+     */
+    public static function getBySlug(string $slug): ?array
+    {
+        $stmt = self::db()->prepare('
+            SELECT * FROM categories WHERE slug = :slug
+        ');
+        $stmt->execute(['slug' => $slug]);
+
+        return $stmt->fetch() ?: null;
+    }
 
     /**
      * @return array

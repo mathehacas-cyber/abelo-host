@@ -24,4 +24,23 @@ abstract class BaseController
         $view = $this->container->make(View::class);
         $view->render($template, $data);
     }
+
+    /**
+     * @param int $statusCode
+     * @param string $message
+     * @return void
+     */
+    protected function terminate(int $statusCode = 500, string $message = ''): void
+    {
+        http_response_code($statusCode);
+
+        $view = $this->container->make(View::class);
+        echo $view->render(
+            'errors/' . $statusCode,
+            [
+                'message' => $message,
+                'code' => $statusCode,
+            ]
+        );
+    }
 }
