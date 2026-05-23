@@ -4,9 +4,19 @@ namespace App\Core;
 
 class View
 {
+    public function __construct(
+        private RendererInterface $renderer
+    ) {
 
-    public function render(string $view, array $data = []): void
+    }
+
+    /**
+     * @param string $template
+     * @param array $data
+     * @return void
+     */
+    public function render(string $template, array $data = []): void
     {
-        echo $view;
+        $this->renderer->render($template, $data);
     }
 }

@@ -4,11 +4,10 @@ namespace App\Controllers;
 
 use App\Core\View;
 
-class IndexController
+class IndexController extends BaseController
 {
     public function index(array $params = []):void
     {
-        $view = new View();
-        $view->render('index');
+        $this->view('index');
     }
 }

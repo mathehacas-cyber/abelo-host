@@ -7,6 +7,14 @@ class Router
     private array $routes = [];
 
     /**
+     * @param Container $container
+     */
+    public function __construct(
+        private Container $container
+    ) {}
+
+
+    /**
      * @param string $path
      * @param array $handler
      * @param string $method
@@ -34,7 +42,7 @@ class Router
 
                 if ($route['method'] === $_SERVER['REQUEST_METHOD'] && $params !== null) {
                     [$class, $action] = $route['handler'];
-                    (new $class())->$action($params);
+                    (new $class($this->container))->$action($params);
                     return;
                 }
             }
@@ -69,7 +77,7 @@ class Router
     {
         http_response_code($statusCode);
 
-        $view = new View();
+        $view = $this->container->make(View::class);
         echo $view->render(
             'errors/' . $statusCode . '.tpl',
             [
