@@ -9,3 +9,5 @@
 .env.local
 
 /docker/data/
+
+/templates_cache/
