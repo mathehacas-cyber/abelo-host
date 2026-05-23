@@ -5,6 +5,7 @@ services:
       dockerfile: docker/Dockerfile
     volumes:
       - .:/var/www/html
+      - vendor_data:/var/www/html/vendor
     depends_on:
       - mysql
 
@@ -40,3 +41,6 @@ services:
       PMA_HOST: mysql
     depends_on:
       - mysql
+
+volumes:
+  vendor_data:
