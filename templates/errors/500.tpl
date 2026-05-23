@@ -1,5 +1,12 @@
-<div class="error-page">
-    <h1>500</h1>
-    <p>Что-то пошло не так</p>
-    <a href="/">На главную</a>
-</div>
+{extends file='layout/main.tpl'}
+
+{block name='title'}500 вЂ” РћС€РёР±РєР° СЃРµСЂРІРµСЂР°{/block}
+
+{block name='content'}
+    <div class="error-page">
+        <span class="error-page__code">500</span>
+        <h1 class="error-page__title">Р§С‚Рѕ-С‚Рѕ РїРѕС€Р»Рѕ РЅРµ С‚Р°Рє</h1>
+        <p class="error-page__text">{$message}</p>
+        <a href="/" class="btn btn--primary">РќР° РіР»Р°РІРЅСѓСЋ</a>
+    </div>
+{/block}

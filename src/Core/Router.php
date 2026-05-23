@@ -79,7 +79,7 @@ class Router
 
         $view = $this->container->make(View::class);
         echo $view->render(
-            'errors/' . $statusCode . '.tpl',
+            'errors/' . $statusCode,
             [
                 'message' => $message,
                 'code' => $statusCode,

@@ -9,6 +9,7 @@ class Kernel
     private Router $router;
 
     public function __construct() {
+        $this->loadEnv();
         $this->container = new Container();
         $this->router    = new Router($this->container);
         $this->registerBindings();
@@ -22,6 +23,14 @@ class Kernel
         }
 
         return self::$instance;
+    }
+
+    private function loadEnv(): void
+    {
+        $env = parse_ini_file(__DIR__ . '/../../.env');
+        foreach ($env as $key => $value) {
+            $_ENV[$key] = $value;
+        }
     }
 
     public static function container(): Container

@@ -1,5 +1,11 @@
-<div class="error-page">
-    <h1>404</h1>
-    <p>Страница не найдена</p>
-    <a href="/">На главную</a>
-</div>
+{extends file='layout/main.tpl'}
+
+{block name='title'}404 вЂ” РЎС‚СЂР°РЅРёС†Р° РЅРµ РЅР°Р№РґРµРЅР°{/block}
+
+{block name='content'}
+    <div class="error-page">
+        <span class="error-page__code">404</span>
+        <h1 class="error-page__title">РЎС‚СЂР°РЅРёС†Р° РЅРµ РЅР°Р№РґРµРЅР°</h1>
+        <a href="/" class="btn btn--primary">РќР° РіР»Р°РІРЅСѓСЋ</a>
+    </div>
+{/block}

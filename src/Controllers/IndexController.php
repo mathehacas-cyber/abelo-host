@@ -2,12 +2,14 @@
 
 namespace App\Controllers;
 
-use App\Core\View;
+use App\Models\Category;
 
 class IndexController extends BaseController
 {
     public function index(array $params = []):void
     {
-        $this->view('index');
+        $this->view('index', [
+            'categories' => Category::getWithLastArticles(),
+        ]);
     }
 }

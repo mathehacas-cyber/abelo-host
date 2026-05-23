@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Core\Db;
+use App\Core\Kernel;
 use PDO;
 
 abstract class BaseModel
