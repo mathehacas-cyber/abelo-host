@@ -1,0 +1,9 @@
+.idea/
+
+/vendor/
+
+/storage/cache/*
+/storage/logs/*
+
+.env
+.env.local
